@@ -14,7 +14,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Kalkulator Sawit',
       theme: ThemeData(primarySwatch: Colors.green),
-      home: const SplashScreen(),  // Menggunakan splash screen sebagai halaman awal
+      home: const SplashScreen(),
     );
   }
 }

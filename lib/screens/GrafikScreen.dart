@@ -4,21 +4,23 @@ import 'package:auto_size_text/auto_size_text.dart';
 
 class GrafikScreen extends StatefulWidget {
   final double biayaPupuk;
-  final double biayaTotal;
+  final double biayaPestisida;
   final double upahPanen;
   final double upahAngkut;
-  final double biayaPestisida;
-  final String hasil;
   final double pendapatan;
+  final double biayaTotal;
+  final double sisaBudget;
+  final String status;
 
-  GrafikScreen({
+  const GrafikScreen({
     required this.biayaPupuk,
-    required this.biayaTotal,
-    required this.upahAngkut,
-    required this.upahPanen,
     required this.biayaPestisida,
-    required this.hasil,
+    required this.upahPanen,
+    required this.upahAngkut,
     required this.pendapatan,
+    required this.biayaTotal,
+    required this.sisaBudget,
+    required this.status,
   });
 
   @override
@@ -26,27 +28,30 @@ class GrafikScreen extends StatefulWidget {
 }
 
 class _GrafikScreenState extends State<GrafikScreen> {
-  bool isLoading = false;
-
   @override
   Widget build(BuildContext context) {
-    // Menyesuaikan nilai maxY untuk memastikan grafik tidak terlalu tinggi
-    double maxY = (widget.biayaTotal + widget.upahPanen + widget.upahAngkut + widget.biayaPestisida + widget.pendapatan) / 1000000 + 1;
+    double maxY = [
+      widget.biayaPupuk,
+      widget.biayaPestisida,
+      widget.upahPanen,
+      widget.upahAngkut,
+      widget.pendapatan,
+      widget.biayaTotal,
+      widget.sisaBudget
+    ].reduce((a, b) => a > b ? a : b) / 1000000 + 1;
 
     return Scaffold(
       backgroundColor: Colors.white10,
       appBar: AppBar(
-        title: Text("Grafik Biaya"),
+        title: Text("Grafik Biaya & Budget"),
         backgroundColor: Colors.blue[700],
-        elevation: 5,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Text(
-              "Estimaasi Biaya dan Pendapatan",
+              "Estimasi Biaya dan Budget",
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
             ),
             SizedBox(height: 10),
@@ -55,45 +60,15 @@ class _GrafikScreenState extends State<GrafikScreen> {
                 BarChartData(
                   alignment: BarChartAlignment.center,
                   maxY: maxY,
-                  backgroundColor: Colors.black54, // Warna background grafik
+                  backgroundColor: Colors.black54,
                   barTouchData: BarTouchData(
                     touchTooltipData: BarTouchTooltipData(
                       tooltipBgColor: Colors.blueGrey,
                       getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                        String label;
-                        double value;
-
-                        // Tentukan nilai yang ingin ditampilkan, misalnya biayaPupuk, biayaPestisida, dll.
-                        switch (group.x.toInt()) {
-                          case 0:
-                            value = widget.biayaPupuk;
-                            break;
-                          case 1:
-                            value = widget.biayaPestisida;
-                            break;
-                          case 2:
-                            value = widget.upahPanen;
-                            break;
-                          case 3:
-                            value = widget.upahAngkut;
-                            break;
-                          case 4:
-                            value = widget.pendapatan;
-                            break;
-                          case 5:
-                            value = widget.biayaTotal;
-                            break;
-                          default:
-                            value = 0;
-                        }
-
-                        // Tentukan satuan berdasarkan nilai
-                        String formattedLabel;
-                        if (value >= 1000000) {
-                          formattedLabel = "Rp ${(value / 1000000).toStringAsFixed(2)} Jt";
-                        } else {
-                          formattedLabel = "Rp ${(value / 1000).toStringAsFixed(2)} Rb";
-                        }
+                        final value = _getValueByIndex(group.x.toInt());
+                        String formattedLabel = value >= 1000000
+                            ? "Rp ${(value / 1000000).toStringAsFixed(2)} Jt"
+                            : "Rp ${(value / 1000).toStringAsFixed(2)} Rb";
 
                         return BarTooltipItem(formattedLabel, TextStyle(color: Colors.white));
                       },
@@ -115,6 +90,7 @@ class _GrafikScreenState extends State<GrafikScreen> {
                     _buildBar(3, widget.upahAngkut, [Colors.red, Colors.pinkAccent]),
                     _buildBar(4, widget.pendapatan, [Colors.orange, Colors.deepOrange]),
                     _buildBar(5, widget.biayaTotal, [Colors.greenAccent, Colors.green]),
+                    _buildBar(6, widget.sisaBudget, [Colors.cyan, Colors.teal]),
                   ],
                   titlesData: FlTitlesData(
                     leftTitles: SideTitles(
@@ -125,7 +101,7 @@ class _GrafikScreenState extends State<GrafikScreen> {
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
-                      getTitles: (value) => "${(value.toInt()).toString()} Jt",
+                      getTitles: (value) => "${value.toInt()} Jt",
                     ),
                     bottomTitles: SideTitles(
                       showTitles: true,
@@ -149,6 +125,8 @@ class _GrafikScreenState extends State<GrafikScreen> {
                             return "Pendapatan";
                           case 5:
                             return "Total";
+                          case 6:
+                            return "Sisa";
                           default:
                             return "";
                         }
@@ -159,8 +137,6 @@ class _GrafikScreenState extends State<GrafikScreen> {
                   ),
                   groupsSpace: 35,
                 ),
-                swapAnimationDuration: Duration(milliseconds: 500), // Animasi transisi
-                swapAnimationCurve: Curves.easeInOut,
               ),
             ),
             SizedBox(height: 15),
@@ -171,10 +147,10 @@ class _GrafikScreenState extends State<GrafikScreen> {
               child: Padding(
                 padding: const EdgeInsets.all(12.0),
                 child: AutoSizeText(
-                  widget.hasil,
+                  "Status Budget Anda: ${widget.status}",
                   style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black),
                   textAlign: TextAlign.center,
-                  maxLines: 6,
+                  maxLines: 7,
                   minFontSize: 12,
                 ),
               ),
@@ -185,13 +161,33 @@ class _GrafikScreenState extends State<GrafikScreen> {
     );
   }
 
-  // Fungsi untuk membuat bar pada grafik
+  double _getValueByIndex(int index) {
+    switch (index) {
+      case 0:
+        return widget.biayaPupuk;
+      case 1:
+        return widget.biayaPestisida;
+      case 2:
+        return widget.upahPanen;
+      case 3:
+        return widget.upahAngkut;
+      case 4:
+        return widget.pendapatan;
+      case 5:
+        return widget.biayaTotal;
+      case 6:
+        return widget.sisaBudget;
+      default:
+        return 0;
+    }
+  }
+
   BarChartGroupData _buildBar(int index, double value, List<Color> colors) {
     return BarChartGroupData(
       x: index,
       barRods: [
         BarChartRodData(
-          y: value / 1000000, // Membagi dengan 1 juta untuk memudahkan visualisasi
+          y: value / 1000000,
           colors: colors,
           width: 20,
           borderRadius: BorderRadius.zero,

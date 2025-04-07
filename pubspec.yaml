@@ -32,7 +32,8 @@ flutter:
 
   # Tambahkan folder assets untuk gambar logo
   assets:
-    - assets/images/LOGO-ITSI.png
+    - assets/images/bg.jpg
+    - assets/images/LOGO-ITSI1.PNG
 
   # Tambahkan font custom jika diperlukan
   fonts:
